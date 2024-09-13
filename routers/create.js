@@ -1,9 +1,8 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const { new_Connection, new_todo_model } = require('../models');
 const { body, validationResult } = require('express-validator');
 
-router.post('/tasks', body().notEmpty(), async (req, res) => {
+router.post('/tasks/:userid', body().notEmpty(), async (req, res) => {
 
 	if (!validationResult(req).isEmpty()) {
 		return res.send({ errors: result.array() });
@@ -29,7 +28,8 @@ router.post('/tasks', body().notEmpty(), async (req, res) => {
 		id,
 		title,
 		description,
-		completed
+		completed,
+		userID: req.params.userid
 	}).then(() => {
 		res.status(201).send('Created');
 	}).catch((e) => {

@@ -1,9 +1,8 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const { new_Connection, new_todo_model } = require('../models');
 
-router.get('/tasks', async (req, res) => {
-
+router.get('/tasks/:userid', async (req, res) => {
+	
 	const connection = await new_Connection();
 
 	if (connection === null) {
@@ -18,7 +17,10 @@ router.get('/tasks', async (req, res) => {
 		return;
 	}
 
-	const tasks = await Todo.findAll()
+	const tasks = await Todo.findAll({
+		where: {
+			userID: Number(req.params.userid)
+		}})
 		.catch((e) => {
 			console.log(e);
 			res.status(500).send('Internal Server Error');
@@ -27,6 +29,7 @@ router.get('/tasks', async (req, res) => {
 	res.status(200).send(tasks);
 
 	connection.close();
+
 	console.log('Connection closed.');
 	
 });

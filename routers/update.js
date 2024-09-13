@@ -1,9 +1,8 @@
-const express = require('express');
-const router = express.Router();
+const router = require('express').Router();
 const { new_Connection, new_todo_model } = require('../models');
 const { body, validationResult, param } = require('express-validator');
 
-router.put('/tasks/:id', param('id').notEmpty(), body().notEmpty(), async (req, res) => {
+router.put('/tasks/:id/:userid', param('id').notEmpty(), body().notEmpty(), async (req, res) => {
 
 	if (!validationResult(req).isEmpty()) {
 		return res.send({ errors: result.array() });
@@ -27,7 +26,7 @@ router.put('/tasks/:id', param('id').notEmpty(), body().notEmpty(), async (req, 
 
 	const id = req.params.id;
 
-	const row = await Todo.findOne({ where: { id } }); 
+	const row = await Todo.findOne({ where: { id, userID:req.params.userid } }); 
 	
 	if (row === null) {
 		res.status(404).send('Not Found');
