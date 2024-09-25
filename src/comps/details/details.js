@@ -9,7 +9,7 @@ export default function Details() {
 	const task = list[selectedID];
 
 	const Ipts = task ? <Inputs key={task.task_id} task={task} /> : <></>;
-	
+
 	return (
 		<div id="dtls">
 			{Ipts}
@@ -20,7 +20,7 @@ export default function Details() {
 var n = 0;
 
 function Inputs({ task }) {
-	
+
 	const setList = useContext(ListContext)[1];
 	const setErr = useContext(ErrContext)[1];
 
@@ -29,20 +29,17 @@ function Inputs({ task }) {
 	const complRef = useRef();
 
 	useEffect(() => {
-		
+
 		const updateTask = async () => {
 
 			task.title = titleRef.current.value === "" ? `Untitled` : titleRef.current.value;
 			task.description = descRef.current.value;
 			task.completed = complRef.current.checked;
 
-			setList((prev) => {
-				const newList = {
-					...prev,
-					[task.task_id]: task
-				};
-				return newList;
-			})
+			setList((prev) => ({
+				...prev,
+				[task.task_id]: task
+			}))
 
 			const save = await task.save();
 			const isErr = Object.getPrototypeOf(save).isAxiosError;
@@ -54,7 +51,10 @@ function Inputs({ task }) {
 		const titleNode = titleRef.current;
 		const descNode = descRef.current;
 		const complNode = complRef.current;
-		
+
+		titleNode.focus()
+		titleNode.select()
+
 		titleNode.addEventListener("input", updateTask);
 		descNode.addEventListener("input", updateTask);
 		complNode.addEventListener("change", updateTask);

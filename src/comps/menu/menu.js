@@ -1,16 +1,16 @@
-import { useMemo, useContext, useRef, useEffect } from "react";
+import { useMemo, useContext, useRef, useEffect, memo } from "react";
 import { SelectedContext, ListContext, ErrContext } from "../..";
 import "./menu.css";
 import TASK from "../../class";
 
 var n = 0;
 
-export default function Menu() {
+export default (function Menu() {
 
 	const [list, setList] = useContext(ListContext);
 	const setSelected = useContext(SelectedContext)[1];
 	const setErr = useContext(ErrContext)[1];
- 
+
 	const taskList = useMemo(() => {
 		return Object.values(list).map((task) => {
 			return <Task obj={task} key={task.task_id} />
@@ -20,44 +20,51 @@ export default function Menu() {
 
 	const newRef = useRef(null);
 
+	let go = true;
+
 	useEffect(() => {
-		
+
 		const newTask = async () => {
 
-			const task = new TASK("0123");
-			
+			const task = new TASK();
+
 			setList(prev => ({
 				...prev,
 				[task.task_id]: task
-			}))
-			
+			}));
+
 			setSelected(task.task_id);
 
 			const create = await task.create();
 			const isErr = Object.getPrototypeOf(create).isAxiosError;
-
-			if (isErr)
+			if (isErr) {
 				setErr(create.message + "#" + n++);
-
+			}
 		}
 
-		const newBtn = newRef.current;
-		
-		newBtn.addEventListener("click", newTask);
+		if (go) newTask();
+
+		newRef.current.addEventListener("click", newTask);
 
 		return () => {
-			newBtn?.removeEventListener("click", newTask);
+			go = false;
+			newRef.current?.removeEventListener("click", newTask);
 		}
 	}, []);
 
 	return (
 		<div id="menu">
-			<button>Refresh</button>
-			<button ref={newRef} >New</button>
-			{taskList}
+			<div id="btns">
+				<button>Refresh</button>
+				<button ref={newRef} >New</button>
+			</div>
+			<div id="tasks">
+				{taskList}
+			</div>
+			<div id="note">Alt + Up/Down <br/> to Move</div>
 		</div>
 	)
-}
+})
 
 
 
@@ -70,12 +77,16 @@ const Task = ({ obj }) => {
 	const taskRef = useRef(null);
 	const delRef = useRef(null);
 
-
+	useEffect(() => {
+		if (selectedID === obj.task_id)
+			taskRef.current?.scrollIntoView({ block: "center" });
+	}, [selectedID]);
+	
 	useEffect(() => {
 
 		const taskClick = (e) => {
 			if (!delNode) return
-			if (e.target === delNode) return;			
+			if (e.target === delNode) return;
 			setSelectedID(obj.task_id);
 		}
 
@@ -92,13 +103,13 @@ const Task = ({ obj }) => {
 			if (isErr)
 				setErr(del.message + "#" + n++);
 		}
-		
+
 		const taskNode = taskRef.current;
 		const delNode = delRef.current;
-	
+
 		taskNode?.addEventListener("click", taskClick);
 		delNode?.addEventListener("click", removeTask);
-		
+
 		return () => {
 			taskNode?.removeEventListener("click", taskClick);
 			delNode?.removeEventListener("click", removeTask);

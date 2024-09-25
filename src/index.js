@@ -1,22 +1,62 @@
-import { createContext, StrictMode, useState } from "react"
+import { createContext, StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import Menu from "./comps/menu/menu"
 import Detail from "./comps/details/details"
 import ErrAlert from "./comps/err/err"
-import TASK from "./class"
 import "./index.css"
 
 const SelectedContext = createContext(null);
 const ListContext = createContext(null);
 const ErrContext = createContext(null);
+export { SelectedContext, ListContext, ErrContext }
 
-const init = new TASK();
+var isAltDown = false;
 
 function App() {
 
-	const [selected, setSelected] = useState(init.task_id);
-	const [list, setList] = useState({ [init.task_id]: init });
+	const [selected, setSelected] = useState();
+	const [list, setList] = useState({});
 	const [err, setErr] = useState(null);
+
+	useEffect(() => {
+
+		window.onkeydown = (e) => {
+			if (e.key === "Alt"){
+				isAltDown = true;
+				return;
+			}
+
+			if (!isAltDown) {
+				return;
+			}
+	
+			let inc = 0;
+			
+			if (e.key === "ArrowUp") inc = -1;
+			else if (e.key === "ArrowDown") inc = 1;
+			else return;
+	
+			const ids = Object.keys(list);
+	
+			const currentPosition = ids.indexOf((selected));
+	
+			let next = ids[currentPosition + inc] ?? selected;
+	
+			setSelected(next);
+		}
+
+		window.onkeyup = (e) => {
+			if (e.key === "Alt"){
+				isAltDown = false;
+			}
+		}
+
+		return () => {
+			window.onkeydown = null;
+			window.onkeyup = null;
+		}
+
+	}, [list, selected]);
 
 	return (
 		<SelectedContext.Provider value={[selected, setSelected]}>
@@ -32,8 +72,6 @@ function App() {
 		</SelectedContext.Provider>
 	)
 }
-
-export { SelectedContext, ListContext, ErrContext }
 
 const root = createRoot(document.querySelector("#root"));
 root.render(
