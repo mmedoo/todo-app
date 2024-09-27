@@ -1,24 +1,27 @@
-import { useMemo, useContext, useRef, useEffect, memo } from "react";
+import React, { useMemo, useContext, useRef, useEffect, memo } from "react";
 import { SelectedContext, ListContext, ErrContext } from "../../index.js";
 import "./menu.css";
-import TASK from "../../class.tsx";
+import TASK, { List } from "../../class.tsx";
 
 var n = 0;
 
 export default (function Menu() {
 
-	const [list, listClass] = useContext(ListContext);
-	const setSelected = useContext(SelectedContext)[1];
-	const setErr = useContext(ErrContext)[1];
+	const [list, listClass] : [any, List] = useContext(ListContext) ?? [{}, new List(() => {})];
+	const selectedContext : any = useContext(SelectedContext);
+	const setSelected : any = selectedContext[1];
+	const errContext : any = useContext(ErrContext);
+	const setErr : any = errContext[1];
 
 	const taskList = useMemo(() => {
-		return Object.values(list).map((task) => {
+		const tasks : TASK[] = Object.values(list);
+		return tasks.map((task) => {
 			return <Task obj={task} key={task.task_id} />
 		});
 	}, [list]);
 
 
-	const newRef = useRef(null);
+	const newRef : any = useRef(null);
 
 	let go = true;
 
@@ -56,15 +59,16 @@ export default (function Menu() {
 })
 
 
+const Task = ({ obj }: { obj: TASK }) => {
 
-const Task = ({ obj }) => {
+	const [selectedID, setSelectedID] : any = useContext(SelectedContext);
+	const listContext : any = useContext(ListContext);
+	const listClass = listContext[1];
+	const errContext : any = useContext(ErrContext);
+	const setErr = errContext[1];
 
-	const [selectedID, setSelectedID] = useContext(SelectedContext);
-	const listClass = useContext(ListContext)[1];
-	const setErr = useContext(ErrContext)[1];
-
-	const taskRef = useRef(null);
-	const delRef = useRef(null);
+	const taskRef : any = useRef(null);
+	const delRef : any = useRef(null);
 
 	useEffect(() => {
 		if (selectedID === obj.task_id)

@@ -1,8 +1,11 @@
-import { createContext, StrictMode, useEffect, useState } from "react"
+import { createContext, StrictMode, useEffect, useMemo, useState } from "react"
 import { createRoot } from "react-dom/client"
-import Menu from "./comps/menu/menu"
-import Detail from "./comps/details/details"
+// import Menu from "./comps/menu/menu"
+import Menu from "./comps/menu/menu.tsx"
+// import Detail from "./comps/details/details"
+import Detail from "./comps/details/details.tsx"
 import ErrAlert from "./comps/err/err"
+import { List } from "./class.tsx"
 import "./index.css"
 
 const SelectedContext = createContext(null);
@@ -12,11 +15,14 @@ export { SelectedContext, ListContext, ErrContext }
 
 var isAltDown = false;
 
+
 function App() {
 
 	const [selected, setSelected] = useState();
-	const [list, setList] = useState({});
+	const [taskMap, setList] = useState({});
 	const [err, setErr] = useState(null);
+
+	const listClass = useMemo(() => new List(setList), []);
 
 	useEffect(() => {
 
@@ -36,7 +42,7 @@ function App() {
 			else if (e.key === "ArrowDown") inc = 1;
 			else return;
 	
-			const ids = Object.keys(list);
+			const ids = Object.keys(taskMap);
 	
 			const currentPosition = ids.indexOf((selected));
 	
@@ -56,11 +62,11 @@ function App() {
 			window.onkeyup = null;
 		}
 
-	}, [list, selected]);
+	}, [taskMap, selected]);
 
 	return (
 		<SelectedContext.Provider value={[selected, setSelected]}>
-			<ListContext.Provider value={[list, setList]}>
+			<ListContext.Provider value={[taskMap, listClass]}>
 				<ErrContext.Provider value={[err, setErr]}>
 
 					<Menu />
