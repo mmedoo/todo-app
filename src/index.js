@@ -1,8 +1,6 @@
 import { createContext, StrictMode, useEffect, useMemo, useState } from "react"
 import { createRoot } from "react-dom/client"
-// import Menu from "./comps/menu/menu"
 import Menu from "./comps/menu/menu.tsx"
-// import Detail from "./comps/details/details"
 import Detail from "./comps/details/details.tsx"
 import ErrAlert from "./comps/err/err"
 import { List } from "./class.tsx"
@@ -15,14 +13,26 @@ export { SelectedContext, ListContext, ErrContext }
 
 var isAltDown = false;
 
-
+let g = true;
 function App() {
 
 	const [selected, setSelected] = useState();
 	const [taskMap, setList] = useState({});
 	const [err, setErr] = useState(null);
 
-	const listClass = useMemo(() => new List(setList), []);
+	const listClass = useMemo(() => new List(setList, setErr), []);
+
+	useEffect(() => {
+		if (g) {
+			(async () => {
+				// const response = await listClass.fetchAll();
+				// console.log(response);
+			})();
+		};
+		return () => {
+			g = false;
+		}
+	}, []);
 
 	useEffect(() => {
 
@@ -36,17 +46,17 @@ function App() {
 				return;
 			}
 	
-			let inc = 0;
+			let offset = 0;
 			
-			if (e.key === "ArrowUp") inc = -1;
-			else if (e.key === "ArrowDown") inc = 1;
+			if (e.key === "ArrowUp") offset = -1;
+			else if (e.key === "ArrowDown") offset = 1;
 			else return;
 	
 			const ids = Object.keys(taskMap);
 	
 			const currentPosition = ids.indexOf((selected));
 	
-			let next = ids[currentPosition + inc] ?? selected;
+			let next = ids[currentPosition + offset] ?? selected;
 	
 			setSelected(next);
 		}

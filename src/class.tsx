@@ -1,16 +1,23 @@
-import axios from "axios"
+import DB, { Tasks } from "./model/todos.tsx";
+
+DB.initialize()
+	.then(() => {
+		console.log("Data Source has been initialized!");
+    })
+    .catch((err) => {
+        console.error("Error during Data Source initialization", err);
+    });
+
 
 // const url = process.env.REACT_APP_SERVER || ""
 const url = "";
 
 var n = 0;
+var errn = 0;
 
 type TaskMap = {
 	[task_id: string]: TASK;
 }
-
-
-
 
 type TaskData = {
 	/** Title of the task */
@@ -22,46 +29,80 @@ type TaskData = {
 }
 
 type IsError = boolean;
+/**
+ * RequestReturn is a tuple that returns a boolean and a value.
+ * [0] - IsError: True if an error occurred.
+ * [1] - Value: The value returned from the request.
+ */
 type RequestReturn = [IsError, any];
 
 class TASK {
 
 	static n = 0;
-
-	user_id: string;
 	data: TaskData;
-	task_id: string;
+	id: string;
 
-	constructor(userid: string, task?: TASK) {
-		this.user_id = userid;
-		this.task_id = task?.task_id ?? String(Date.now() + n);
+	constructor(task?: TASK) {
+		this.id = task?.id ?? String(Date.now() + n);
 		this.data = task?.data ?? {
-			title: `Task #${n}`,
+			title: String(`Task #${n}`),
 			completed: false,
 			description: `Description for Task #${n++}`
 		}
 	}
 
-	// async create() : RequestReturn {
-	async create() {
-		return true;
-		return await axios.post(`${url}/task/${this.user_id}`, this)
-			.catch(err => { return (err) });
+	/**
+	 * Warning! #####################################
+	 * Don't call this function Outside of List Class
+	*/
+	async createInDB(): Promise<RequestReturn> {
+		try {
+			// await DB.create(Tasks, {
+			// 	id: this.id,
+			// 	...this.data
+			// })
+			return [false, this];
+		} catch (err) {
+			return [true, err]
+		}
 	}
 
-	// async save() : RequestReturn {
-	async save() {
-		return true;
-		return await axios.put(`${url}/task/${this.user_id}`, this)
-			.catch(err => { return (err) });
+	/**
+	 * Warning! #####################################
+	 * Don't call this function Outside of List Class
+	*/
+	async updateInDB(): Promise<RequestReturn> {
+		const id = this.id;
+		const row = await List.model.findOne({ where: { id } });
+		if (row === null) {
+			return [true, `Task with ID ${id} not found.`];
+		}
+		return await row.set({
+			...this.data
+		}).save()
+			.then(() => { return [false, this] })
+			.catch(err => { return [true, err] });
 	}
 
-	// async delete() : RequestReturn {
-	async delete() {
-		return true;
-		return await axios.delete(`${url}/task/${this.user_id}/${this.task_id}`)
-			.catch(err => { return (err) });
+	/**
+	 * Warning! #####################################
+	 * Don't call this function Outside of List Class
+	*/
+	async deleteInDB(): Promise<RequestReturn> {
+
+		const id = this.id;
+		const row = await List.model.findOne({ where: { id } });
+
+		if (row === null) {
+			return [true, `Task with ID ${id} not found.`];
+		}
+
+		return await row.destroy()
+			.then(() => { return [false, this] })
+			.catch(err => { return [true, err] });
 	}
+
+
 
 };
 
@@ -71,17 +112,47 @@ class List {
 	taskMap: TaskMap;
 
 	setListState: Function;
+	setErrorState: Function;
 
-	constructor(setStateFunction: Function) {
-		this.taskMap = {};
+	static connection;
+	static model;
+
+	/**
+	 * Create a new List.
+	 * @param setStateFunction - Function to set the state of the list.
+	 * @param setErrorFunction - Function to set the displayed error state.
+	 */
+
+	constructor(setStateFunction: Function, setErrorFunction: Function) {
+		// List.connection = new_Connection();
+		// List.model = new_todo_model(List.connection);
+
 		this.setListState = setStateFunction;
+		this.setErrorState = setErrorFunction;
+
+		this.taskMap = {};
+	}
+
+	/**
+	 * Fetch all tasks from the database.
+	 */
+	async fetchAll() {
+		return await List.model.findAll()
+			.then((tasks) => {
+				// tasks.forEach((task) => {
+				// this.taskMap[task.id] = new TASK(task);
+				// });
+				// this.updateList();
+				return [false, this.taskMap];
+			})
+			.catch(err => { return [true, err] });
 	}
 
 	/**
 	 * Triggers a list mutation.
 	 */
 
-	updateList() {
+	updateListState() {
 		this.setListState({ ...this.taskMap });
 	}
 
@@ -92,11 +163,16 @@ class List {
 	 * @param {TaskData} data - Data for a task (title - description - completed).
 	*/
 
-	updateTask(task_id: string, data: TaskData) {
+	async updateTask(task_id: string, data: TaskData) {
 
-		this.taskMap[task_id].data = data;
+		const task = this.taskMap[task_id];
+		task.data = data;
+		this.updateListState();
 
-		this.updateList();
+		const [err, res] = await task.updateInDB();
+		if (err) {
+			this.setErrorState(res + "#" + errn++);
+		}
 	}
 
 	/**
@@ -104,12 +180,18 @@ class List {
 	 * @param userid - User ID for the task.
 	 * @returns {string} - Task ID for the new task. 
 	 */
-	
-	newTask(userid?: string): string {
-		const task = new TASK(userid ?? "");
-		this.taskMap[task.task_id] = task;
-		this.updateList();
-		return task.task_id;
+
+	async newTask(): Promise<string> {
+		const task = new TASK();
+		this.taskMap[task.id] = task;
+		this.updateListState();
+
+		const [err, res] = await task.createInDB();
+		if (err) {
+			this.setErrorState(res + "#" + errn++);
+		}
+
+		return task.id;
 	}
 
 	/**
@@ -117,9 +199,13 @@ class List {
 	 * @param task_id - Task ID for the task to remove.
 	 */
 
-	removeTask(task_id: string) {
+	async removeTask(task_id: string) {
+		const [err, res] = await this.taskMap[task_id].deleteInDB();
+		if (err) {
+			this.setErrorState(res + "#" + errn++);
+		}
 		delete this.taskMap[task_id];
-		this.updateList();
+		this.updateListState();
 	}
 }
 

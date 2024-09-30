@@ -7,7 +7,7 @@ var n = 0;
 
 export default (function Menu() {
 
-	const [list, listClass] : [any, List] = useContext(ListContext) ?? [{}, new List(() => {})];
+	const [list, listClass] : [any, List] = useContext(ListContext) ?? [{}, new List(() => {}, () => {})];
 	const selectedContext : any = useContext(SelectedContext);
 	const setSelected : any = selectedContext[1];
 	const errContext : any = useContext(ErrContext);
@@ -16,7 +16,7 @@ export default (function Menu() {
 	const taskList = useMemo(() => {
 		const tasks : TASK[] = Object.values(list);
 		return tasks.map((task) => {
-			return <Task obj={task} key={task.task_id} />
+			return <Task obj={task} key={task.id} />
 		});
 	}, [list]);
 
@@ -71,7 +71,7 @@ const Task = ({ obj }: { obj: TASK }) => {
 	const delRef : any = useRef(null);
 
 	useEffect(() => {
-		if (selectedID === obj.task_id)
+		if (selectedID === obj.id)
 			taskRef.current?.scrollIntoView({ block: "center" });
 	}, [selectedID]);
 	
@@ -80,11 +80,11 @@ const Task = ({ obj }: { obj: TASK }) => {
 		const taskClick = (e) => {
 			if (!delNode) return
 			if (e.target === delNode) return;
-			setSelectedID(obj.task_id);
+			setSelectedID(obj.id);
 		}
 
 		const removeTask = async () => {
-			listClass.removeTask(obj.task_id);			
+			listClass.removeTask(obj.id);			
 		}
 
 		const taskNode = taskRef.current;
@@ -102,7 +102,7 @@ const Task = ({ obj }: { obj: TASK }) => {
 	const {data} = obj;
 	
 	return (
-		<div ref={taskRef} className={`task ${selectedID === obj.task_id ? "selected" : ""}`}>
+		<div ref={taskRef} className={`task ${selectedID === obj.id ? "selected" : ""}`}>
 			<span
 				style={{
 					textDecoration: data.completed ? "line-through" : "none",

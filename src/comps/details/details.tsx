@@ -15,7 +15,7 @@ export default function Details() {
 
 		const task : TASK = map[selectedID];
 		
-		return task ? <Inputs key={task.task_id} task={task} /> : <></>;
+		return task ? <Inputs key={task.id} task={task} /> : <></>;
 		
 	}, [selectedID])
 
@@ -46,7 +46,7 @@ function Inputs({ task } : { task: TASK }) {
 
 			const data = { title, description, completed };
 			
-			listClass.updateTask(task.task_id, data);
+			listClass.updateTask(task.id, data);
 		}
 
 		const titleNode = titleRef.current;
