@@ -1,40 +1,12 @@
-import DB, { Tasks } from "./model/todos.tsx";
+import axios from "axios"
 
-DB.initialize()
-	.then(() => {
-		console.log("Data Source has been initialized!");
-    })
-    .catch((err) => {
-        console.error("Error during Data Source initialization", err);
-    });
-
+import {TaskMap, TaskData, RequestReturn} from "./types"
 
 // const url = process.env.REACT_APP_SERVER || ""
 const url = "";
-
 var n = 0;
 var errn = 0;
-
-type TaskMap = {
-	[task_id: string]: TASK;
-}
-
-type TaskData = {
-	/** Title of the task */
-	title: string;
-	/** Task Completion */
-	completed: boolean;
-	/** Task Description */
-	description: string;
-}
-
-type IsError = boolean;
-/**
- * RequestReturn is a tuple that returns a boolean and a value.
- * [0] - IsError: True if an error occurred.
- * [1] - Value: The value returned from the request.
- */
-type RequestReturn = [IsError, any];
+const fingerprint = Math.random().toString(36);
 
 class TASK {
 
@@ -42,7 +14,17 @@ class TASK {
 	data: TaskData;
 	id: string;
 
-	constructor(task?: TASK) {
+	private static fp: string = fingerprint;
+
+
+	checkfp(fp : string) {
+		if (fp !== TASK.fp) {
+			throw new Error("Invalid Fingerprint. TASK is only accessible through List class.");
+		}
+	}
+	
+	constructor(fp: string, task?: TASK) {
+		this.checkfp(fp);
 		this.id = task?.id ?? String(Date.now() + n);
 		this.data = task?.data ?? {
 			title: String(`Task #${n}`),
@@ -56,15 +38,12 @@ class TASK {
 	 * Don't call this function Outside of List Class
 	*/
 	async createInDB(): Promise<RequestReturn> {
-		try {
-			// await DB.create(Tasks, {
-			// 	id: this.id,
-			// 	...this.data
-			// })
-			return [false, this];
-		} catch (err) {
-			return [true, err]
-		}
+		return axios.post(url + "/api/todo", {
+			id: this.id,
+			...this.data
+		})
+			.then(() => { return [false, ""] as RequestReturn })
+			.catch(err => { return [true, err.message] as RequestReturn });
 	}
 
 	/**
@@ -80,8 +59,8 @@ class TASK {
 		return await row.set({
 			...this.data
 		}).save()
-			.then(() => { return [false, this] })
-			.catch(err => { return [true, err] });
+			.then(() => { return [false, ""] })
+			.catch(err => { return [true, err.message] });
 	}
 
 	/**
@@ -99,11 +78,8 @@ class TASK {
 
 		return await row.destroy()
 			.then(() => { return [false, this] })
-			.catch(err => { return [true, err] });
+			.catch((err) => { return [true, err] });
 	}
-
-
-
 };
 
 
@@ -114,8 +90,7 @@ class List {
 	setListState: Function;
 	setErrorState: Function;
 
-	static connection;
-	static model;
+	private static fp = fingerprint;
 
 	/**
 	 * Create a new List.
@@ -124,9 +99,6 @@ class List {
 	 */
 
 	constructor(setStateFunction: Function, setErrorFunction: Function) {
-		// List.connection = new_Connection();
-		// List.model = new_todo_model(List.connection);
-
 		this.setListState = setStateFunction;
 		this.setErrorState = setErrorFunction;
 
@@ -135,17 +107,17 @@ class List {
 
 	/**
 	 * Fetch all tasks from the database.
-	 */
+	*/
 	async fetchAll() {
-		return await List.model.findAll()
-			.then((tasks) => {
-				// tasks.forEach((task) => {
-				// this.taskMap[task.id] = new TASK(task);
-				// });
-				// this.updateList();
-				return [false, this.taskMap];
-			})
-			.catch(err => { return [true, err] });
+		return await axios.get("/api/todo")
+			// .then((tasks) => {
+			// 	tasks.forEach((task) => {
+			// 		this.taskMap[task.id] = new TASK(task);
+			// 	});
+			// 	this.updateListState();
+			// 	return [false, "State Updated"];
+			// })
+			// .catch(err => { return [true, err] });
 	}
 
 	/**
@@ -182,7 +154,7 @@ class List {
 	 */
 
 	async newTask(): Promise<string> {
-		const task = new TASK();
+		const task = new TASK(List.fp);
 		this.taskMap[task.id] = task;
 		this.updateListState();
 
@@ -211,4 +183,4 @@ class List {
 
 
 export default TASK;
-export { List, TaskData as TaskInfoType, TaskMap };
+export { TASK, List, TaskData as TaskInfoType, TaskMap };

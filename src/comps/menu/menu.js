@@ -19,6 +19,7 @@ export default (function Menu() {
 
 
 	const newRef = useRef(null);
+	const menuRef = useRef(null);
 
 	let go = true;
 
@@ -35,14 +36,49 @@ export default (function Menu() {
 
 		newRef.current.addEventListener("click", newTask);
 
+		menuRef.current?.onmousedown = function (e) {
+			this.isRightEdgeDragged = (e.x < right && e.x > right - 10);
+			this.downX = e.x;
+		}
+
+		menuRef.current?.onmouseup = function (e) {
+			this.isRightEdgeDragged = false;
+		}
+
+		menuRef.current?.onmouseout = function (e) {
+			if (this.isRightEdgeDragged)
+				return;
+			this.style.borderColor = "transparent";
+			this.style.cursor = "default";
+		}
+		
+		menuRef.current?.onmousemove = function (e) {
+			const { width, right } = this.getBoundingClientRect();
+
+			if (this.isRightEdgeDragged) {
+				let rightDragDist = e.x - this.downX;
+				this.style.width = (rightDragDist + width) * 100 / innerWidth + '%';
+				return;
+			}
+
+			if (e.x < right && e.x > right - 10) {
+				this.style.borderColor = "#ccc";
+				this.style.cursor = "col-resize";
+			} else {
+				this.style.borderColor = "transparent";
+				this.style.cursor = "default";
+			}
+		}
+
 		return () => {
 			go = false;
 			newRef.current?.removeEventListener("click", newTask);
+			// menuRef.current.onmousemove = null;
 		}
 	}, []);
 
 	return (
-		<div id="menu">
+		<div ref={menuRef} id="menu">
 			<div id="btns">
 				<button>Refresh</button>
 				<button ref={newRef} >New</button>
@@ -50,7 +86,7 @@ export default (function Menu() {
 			<div id="tasks">
 				{taskList}
 			</div>
-			<div id="note">Alt + Up/Down <br/> to Move</div>
+			<div id="note">Alt + Up/Down <br /> to Move</div>
 		</div>
 	)
 })
@@ -70,7 +106,7 @@ const Task = ({ obj }) => {
 		if (selectedID === obj.task_id)
 			taskRef.current?.scrollIntoView({ block: "center" });
 	}, [selectedID]);
-	
+
 	useEffect(() => {
 
 		const taskClick = (e) => {
@@ -80,7 +116,7 @@ const Task = ({ obj }) => {
 		}
 
 		const removeTask = async () => {
-			listClass.removeTask(obj.task_id);			
+			listClass.removeTask(obj.task_id);
 		}
 
 		const taskNode = taskRef.current;
@@ -95,8 +131,8 @@ const Task = ({ obj }) => {
 		}
 	}, []);
 
-	const {data} = obj;
-	
+	const { data } = obj;
+
 	return (
 		<div ref={taskRef} className={`task ${selectedID === obj.task_id ? "selected" : ""}`}>
 			<span

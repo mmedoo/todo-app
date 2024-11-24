@@ -6,14 +6,31 @@
 	height: calc(100vh);
 	flex-direction: column;
 	background-color: #f1f1f1;
+	user-select: none;
+	overflow: hidden;
+
+	&.drag {
+		cursor: col-resize;
+	}
+	
+	&.drag::after {
+		content: '';
+		top: 0;
+		bottom: 0;
+		width: 5px;
+		right: -5px;
+		position: absolute;
+		background-color: #0002;
+	}
 
 	&>#btns {
 		top: 0;
 		position: sticky;
-		width: 100%;
+		min-width: 150px;
 		display: flex;
 		align-items: center;
-		flex-direction: column;
+		/* flex-direction: column; */
+		justify-content: space-around;
 	}
 
 	&>#tasks {
@@ -27,6 +44,7 @@
 
 	& button {
 		margin: 10px 0;
+		background-color: rgb(255, 255, 255, 0.9);
 	}
 
 	&>#note {
@@ -64,7 +82,7 @@
 	}
 
 	&>button {
-		background-color: rgba(255, 0, 0, 0.75);
+		background-color: rgba(255, 0, 0, 0.75) !important;
 		color: white;
 	}
 

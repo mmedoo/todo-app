@@ -26,10 +26,9 @@ button {
 	cursor: pointer;
 	padding: 5px 10px;
 	border-radius: 6px;
-	background: white;
 	box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
 	&:hover {
-		filter: brightness(0.8);
+		backdrop-filter: brightness(0.6);
 	}
 	&:active {
 		filter: brightness(0.65);
