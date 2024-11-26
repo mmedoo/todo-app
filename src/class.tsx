@@ -38,6 +38,7 @@ class TASK {
 	 * Don't call this function Outside of List Class
 	*/
 	async createInDB(): Promise<RequestReturn> {
+		return null;
 		return axios.post(url + "/api/todo", {
 			id: this.id,
 			...this.data
@@ -51,6 +52,7 @@ class TASK {
 	 * Don't call this function Outside of List Class
 	*/
 	async updateInDB(): Promise<RequestReturn> {
+		return null;
 		const id = this.id;
 		const row = await List.model.findOne({ where: { id } });
 		if (row === null) {
@@ -68,7 +70,7 @@ class TASK {
 	 * Don't call this function Outside of List Class
 	*/
 	async deleteInDB(): Promise<RequestReturn> {
-
+		return null;
 		const id = this.id;
 		const row = await List.model.findOne({ where: { id } });
 

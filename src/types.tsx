@@ -18,6 +18,6 @@ type TaskData = {
  * [0] - IsError: True if an error occurred.
  * [1] - Value: The value returned from the request.
  */
-type RequestReturn = [boolean, string];
+type RequestReturn = [boolean, string] | null;
 
 export {TaskMap, TaskData, RequestReturn}
