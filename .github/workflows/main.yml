@@ -18,12 +18,12 @@ jobs:
 
       - name: Check if client build changed
         uses: marceloprado/has-changed-path@v1.0.1
-        id: changed-home
+        id: changed-client
         with:
-          paths: home
+          paths: '.'
   
       - name: Update Client
-        if: steps.changed-home.outputs.changed == 'true'
+        if: steps.changed-client.outputs.changed == 'true'
         uses: mmedoo/build-react-on-push@v1.3
         with:
           GITHUB_TOKEN: ${{ secrets.ACT_TOK }}
