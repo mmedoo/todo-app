@@ -1,6 +1,6 @@
 import axios from "axios"
 
-import {TaskMap, TaskData, RequestReturn} from "./types"
+import {TaskMap, TaskData, RequestReturn} from "./types.tsx"
 
 // const url = process.env.REACT_APP_SERVER || ""
 const url = "";
@@ -54,15 +54,15 @@ class TASK {
 	async updateInDB(): Promise<RequestReturn> {
 		return null;
 		const id = this.id;
-		const row = await List.model.findOne({ where: { id } });
-		if (row === null) {
-			return [true, `Task with ID ${id} not found.`];
-		}
-		return await row.set({
-			...this.data
-		}).save()
-			.then(() => { return [false, ""] })
-			.catch(err => { return [true, err.message] });
+		// const row = await List.model.findOne({ where: { id } });
+		// if (row === null) {
+			// return [true, `Task with ID ${id} not found.`];
+		// }
+		// return await row.set({
+			// ...this.data
+		// }).save()
+			// .then(() => { return [false, ""] })
+			// .catch(err => { return [true, err.message] });
 	}
 
 	/**
@@ -72,15 +72,15 @@ class TASK {
 	async deleteInDB(): Promise<RequestReturn> {
 		return null;
 		const id = this.id;
-		const row = await List.model.findOne({ where: { id } });
+	// 	const row = await List.model.findOne({ where: { id } });
 
-		if (row === null) {
-			return [true, `Task with ID ${id} not found.`];
-		}
+	// 	if (row === null) {
+	// 		return [true, `Task with ID ${id} not found.`];
+	// 	}
 
-		return await row.destroy()
-			.then(() => { return [false, this] })
-			.catch((err) => { return [true, err] });
+	// 	return await row.destroy()
+	// 		.then(() => { return [false, this] })
+	// 		.catch((err) => { return [true, err] });
 	}
 };
 
@@ -143,10 +143,10 @@ class List {
 		task.data = data;
 		this.updateListState();
 
-		const [err, res] = await task.updateInDB();
-		if (err) {
-			this.setErrorState(res + "#" + errn++);
-		}
+		// const [err, res] = await task.updateInDB();
+		// if (err) {
+		// 	this.setErrorState(res + "#" + errn++);
+		// }
 	}
 
 	/**
@@ -160,10 +160,10 @@ class List {
 		this.taskMap[task.id] = task;
 		this.updateListState();
 
-		const [err, res] = await task.createInDB();
-		if (err) {
-			this.setErrorState(res + "#" + errn++);
-		}
+		// const [err, res] = await task.createInDB();
+		// if (err) {
+		// 	this.setErrorState(res + "#" + errn++);
+		// }
 
 		return task.id;
 	}
@@ -174,10 +174,10 @@ class List {
 	 */
 
 	async removeTask(task_id: string) {
-		const [err, res] = await this.taskMap[task_id].deleteInDB();
-		if (err) {
-			this.setErrorState(res + "#" + errn++);
-		}
+		// const [err, res] = await this.taskMap[task_id].deleteInDB();
+		// if (err) {
+		// 	this.setErrorState(res + "#" + errn++);
+		// }
 		delete this.taskMap[task_id];
 		this.updateListState();
 	}
@@ -185,4 +185,4 @@ class List {
 
 
 export default TASK;
-export { TASK, List, TaskData as TaskInfoType, TaskMap };
+export { TASK, List };
