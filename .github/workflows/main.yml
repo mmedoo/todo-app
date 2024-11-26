@@ -1,0 +1,31 @@
+name: Conditional Jobs
+
+on:
+  push:
+    branches:
+      - client
+  workflow_dispatch:
+    
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+
+      - name: Check if client build changed
+        uses: marceloprado/has-changed-path@v1.0.1
+        id: changed-home
+        with:
+          paths: home
+  
+      - name: Update Client
+        if: steps.changed-home.outputs.changed == 'true'
+        uses: mmedoo/build-react-on-push@v1.3
+        with:
+          GITHUB_TOKEN: ${{ secrets.ACT_TOK }}
+          BRANCH_NAME: "main"
+          TARGET_DIRECTORY: "public"
